@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@techstark/opencv-js": "^4.6.0-release.1",
     "next": "12.2.2",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "smartcrop": "^2.0.5",
+    "use-smartcrop": "^1.0.3"
   },
   "devDependencies": {
     "eslint": "8.19.0",
