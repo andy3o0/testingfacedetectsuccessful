@@ -58,9 +58,11 @@ export default function Home() {
   async function testOpenCv() {
     if (!modelLoaded) return;
     var img = img1.current;
-    var mat = cv.imread(img);
-    const haarFaces = detectHaarFace(mat);
-    cv.imshow(canvas1.current, haarFaces);
+    // var mat = cv.imread(img);
+    const haarFaces = detectHaarFace(img);
+    const haarfacedata = await haarFaces;
+    // console.log(haarfacedata.canvas);
+    cv.imshow(canvas1.current, haarfacedata.dst);
     // await cv.imshow(faceImgRef.current, img);
     // await cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY);
     // await cv.bitwise_not(mat, mat);

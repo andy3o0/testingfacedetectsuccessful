@@ -1,4 +1,5 @@
 import cv from "@techstark/opencv-js";
+import { createCanvas, loadImage } from "canvas";
 import { loadDataFile } from "./cvDataFile";
 
 const msize = new cv.Size(0, 0);
@@ -28,35 +29,85 @@ export async function loadHaarFaceModels() {
       console.error(error);
     });
 }
-
-/**
- * Detect faces from the input image.
- * See https://docs.opencv.org/master/d2/d99/tutorial_js_face_detection.html
- * @param {cv.Mat} img Input image
- * @returns the modified image with detected faces drawn on it.
- */
-export function detectHaarFace(img) {
-  // const newImg = img.clone();
-  const newImg = img;
-
+/////////////////////////////////////////////////////////////////////////////////////////
+export const detectHaarFace = async (img) => {
+  var image = img;
+  // var name = "output.jpg";
+  // var type = "image/jpeg";
+  // var quality = 0.95;
+  var factor = 1;
+  if (image != null) var src = cv.imread(image);
+  // console.log(src);
   const gray = new cv.Mat();
-  cv.cvtColor(newImg, gray, cv.COLOR_RGBA2GRAY, 0);
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
 
   const faces = new cv.RectVector();
-
   // detect faces
   faceCascade.detectMultiScale(gray, faces, 1.1, 3, 0, msize, msize);
+  let point1, point2;
+
   for (let i = 0; i < faces.size(); ++i) {
-    const point1 = new cv.Point(faces.get(i).x, faces.get(i).y);
-    const point2 = new cv.Point(
+    point1 = new cv.Point(faces.get(i).x, faces.get(i).y);
+    point2 = new cv.Point(
       faces.get(i).x + faces.get(i).width,
       faces.get(i).y + faces.get(i).height
     );
-    cv.rectangle(newImg, point1, point2, [255, 0, 0, 255]);
+
+    //get offset pixels from factor, width=height
+    let offset = Math.floor(faces.get(i).width * (factor - 1));
+
+    // console.log([point1,point2]);
+    // console.log("offset set to"+offset);
+
+    if (point1.x < offset) {
+      offset = point1.x;
+      // console.log("offset adjusted to "+offset);
+    }
+
+    if (point1.y < offset) {
+      offset = point1.y;
+      // console.log("offset adjusted to "+offset);
+    }
+
+    if (image.height < point2.y + offset) {
+      offset = image.height - point2.y;
+      // console.log("offset2 adjusted to "+offset);
+    }
+
+    if (image.width < point2.x + offset) {
+      offset = image.width - point2.x;
+      // console.log("offset2 adjusted to "+offset);
+    }
+
+    point1.x = point1.x - offset;
+    point1.y = point1.y - offset;
+
+    point2.x = point2.x + offset;
+    point2.y = point2.y + offset;
+
+    // console.log([point1,point2]);
+    // console.log(point1.x, point1.y, point2.x, point2.y);
+
+    var canvas = createCanvas(point2.x - point1.x, point2.y - point1.y);
+
+    // 122 52 223 153
+
+    let rect = new cv.Rect(
+      point1.x,
+      point1.y,
+      point2.x - point1.x,
+      point2.y - point1.y
+    );
+
+    // console.log("Rendering output image...");
+    var dst = src.roi(rect);
+    // console.log(dst);
+    // cv.imshow(canvas, dst);
   }
 
+  // faceCascade.delete();
   gray.delete();
   faces.delete();
 
-  return newImg;
-}
+  return { dst, canvas };
+};
